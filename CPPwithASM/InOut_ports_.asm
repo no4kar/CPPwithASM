@@ -7,7 +7,7 @@
 		YOURSELF = 0
 			Prolog:
 		IF YOURSELF
-				push ebp                           ; WARNING!!! compiler does it yourself
+				push ebp                           ; WARNING!!! compiler does it yourself if use PROC
 				mov ebp, esp                       ; ebp,esp,edi,esi aren't volatile
 		ENDIF
 				push edx;
