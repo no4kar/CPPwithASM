@@ -1,0 +1,157 @@
+
+".model" can be:
+	"c" -- __cdecl(a CALLER of subprogram respond for cleaning of a stack; arguments pushing in a stack in BACKWARD direction
+-- from right to left; 'dword' returned in a 'eax')
+	"stdcall" -- __stdcall(a CALLED subprogram respond for cleaning of a stack; arguments pushing in a stack in BACKWARD direction
+-- from right to left)        
+	"fastcall" -- __fastcall(NOT STANDARDIZER, FOR INTERNAL USE ONLY; arguments are passing from registers)
+
+
+include C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.24.28314\include\thread
+
+//////////////////////////////////////////////
+
+Lock_ proc
+
+        ; Function prolog
+            push ebp
+            mov ebp,esp
+
+        ; Prepaer
+            mov eax,00h            ; eax = 0
+            mov ebx,[ebp+8]
+
+        ; Check the mutex value
+        CheckMutexValue :
+            xchg eax,[ebx]     ; exchange value between eaxand[ebp + 8]
+            and eax,0FFh
+            cmp eax,00h            ; compare eax and '0'
+            jne Epilog              ; if (eax != 0) goto Epilog
+
+        ; If the mutex value is zero, check againe
+            ;call _Thrd_yield
+            jmp CheckMutexValue
+
+        ; Function epilog
+        Epilog :
+            pop ebp
+            ret
+
+Lock_ endp
+
+//////////////////////////////////////////////////////////////////////
+        
+        .const
+
+FibVals dword 0, 1, 1, 2, 3, 5, 8, 13
+        dword 21, 34, 55, 89, 144, 233, 377, 610
+
+NumFibVals_ dword ($ - FibVals) / sizeof dword
+        
+        public NumFibVals_
+
+////////*extern func, include assembly files*////////////////////////
+
+;include AsmHeader_.inc                 ;for assemblers header files(name_.inc)
+extern _Thrd_yield:proc                 ;for calling external functions from .cpp files
+
+//////////////////////////////////////////////////////////////////////
+string db 'go\0'
+    "string" is a lable
+    "db" mine define byte
+    'go' will be defined as '67h 6Fh 00h' in ASCII representation
+
+string dd 'go\0' will be represented as '67h 6Fh 00h 00h'
+
+//////////////////////////////////////////////////////////////////////
+    if 1
+        CallPrImStr:
+            call PrImStr
+            Msg3 db 'abcdefghijklmnopqrst',0     ; dont read '/0', the more characters, the better
+    endif
+//////////////////////////////////////////////////////////////////////
+    if 0
+            push eax; 50
+            push ax; 66 50
+            ;push al; (A2149)A byte register was specified to an instruction that cannot take it as the first operand
+            sub esp, 4; 83 EC 04
+    endif
+//////////////////////////////////////////////////////////////////////
+#define INT_POINT 1
+#if INT_POINT == 1
+    IntPoint_(1);
+#endif
+//////////////////////////////////////////////////////////////////////
+#if FRY_IS_RICH == 1
+    
+    float bill = 0.93f;
+	for (size_t i = 0; i < 1000; i++)
+        printf("%d: %5.2f\n",
+            i,
+            bill *= 1.023f);
+#endif
+//////////////////////////////////////////////////////////////////////
+		.MODEL flat, c
+
+		.CODE
+
+	;void OutB_(U16_t _port, U8_t _value);
+	OutB_ PROC _port:WORD, _value:BYTE
+		YOURSELF = 0
+			Prolog:
+		IF YOURSELF
+				push ebp                           ; WARNING!!! compiler does it yourself
+				mov ebp, esp                       ; ebp,esp,edi,esi aren't volatile
+		ENDIF
+				push edx;
+
+				mov al, _value;
+				mov dx, _port;
+				out dx, al;
+			Epilog :
+				pop edx
+		IF YOURSELF
+				pop ebp
+		ENDIF
+				ret                             ; eip = *esp, esp-=4;
+	OutB_ ENDP
+
+					END
+
+
+                                        code    segment   ;.text
+code_begin  label   byte
+
+
+            
+OxO1 PROC var:DWORD    ;extern "C" void OxO1(int var);
+
+            push edx
+            push ecx
+
+            xor edx, edx
+            mov ecx, 10h
+            mov   eax, dword ptr [var]  ; or 'mov edx, var'
+        loop1:
+            xadd     eax, edx   ; temp=op1+op2, op2=op1, op1=temp
+            loop     loop1      ; if(ecx)goto op1
+        epilog:
+            pop ecx
+            pop edx
+
+            ret
+OxO1 ENDP
+
+
+OxO2 PROC var:DWORD    ;extern "C" void OxO2_(int var); DWORD == define doubleword 
+
+            mov eax, dword ptr[ebp+8]    ;mov    rax, var
+
+            neg eax         ; op1=0-op1
+            sbb eax, eax    ; op1=op1-(op2+CY)  ;DEST ? (DEST – (SRC + CF))
+            neg eax
+                        
+            ret
+OxO2 ENDP
+
+                    END ;file end
